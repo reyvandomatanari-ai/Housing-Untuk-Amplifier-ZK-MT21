@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Penyusun Gambar Teknik Casing ZK-MT21</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; padding: 20px; text-align: center; color: #222; }
+  .toolbar { background: #fff; padding: 15px 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: inline-flex; gap: 15px; align-items: center; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
+  button { background: #2563eb; color: #fff; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+  button:hover { background: #1d4ed8; }
+  label { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  
+  /* Kanvas Utama */
+  #sheet {
+    background: #ffffff;
+    width: 1120px;
+    margin: 0 auto;
+    padding: 35px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+  }
+  #sheet h1 { margin: 0 0 25px 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #222; padding-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+  
+  .card { border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 12px; background: #fff; display: flex; flex-direction: column; align-items: center; }
+  .img-box { width: 100%; height: 220px; overflow: hidden; position: relative; background: #ffffff; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+  .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s; }
+  
+  /* Mode Auto-Crop UI Browser & Taskbar */
+  .auto-crop .img-box img {
+    transform: scale(1.65); /* Memperbesar objek tengah dan memotong header browser + taskbar */
+    transform-origin: center 48%;
+  }
+
+  .card input[type="file"] { margin-top: 10px; font-size: 12px; width: 100%; }
+  .title-input { margin-top: 10px; font-size: 15px; font-weight: bold; text-align: center; border: none; border-bottom: 1px dashed #94a3b8; width: 90%; padding: 4px; color: #1e293b; }
+  .title-input:focus { outline: none; border-bottom: 1.5px solid #2563eb; }
+
+  /* Sembunyikan tombol pilih file saat dicetak/disimpan */
+  @media print {
+    .toolbar, input[type="file"] { display: none !important; }
+    body { background: #fff; padding: 0; }
+    #sheet { box-shadow: none; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <label><input type="checkbox" id="cropToggle" checked onchange="toggleCrop()"> Potong Otomatis (Hapus Taskbar & Browser)</label>
+  <button onclick="downloadImage()">💾 Download Gabungan PNG</button>
+  <button onclick="window.print()" style="background:#475569;">🖨️ Simpan PDF / Print</button>
+</div>
+
+<div id="sheet" class="auto-crop">
+  <h1 contenteditable="true">Gambar Kerja Casing Amplifier ZK-MT21 + PSU 24V 200W</h1>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Library html2canvas untuk export langsung ke PNG -->
+<script src="https://cloudflare.com"></script>
+<script>
+  const views = [
+    "Tampak Depan",
+    "Tampak Belakang",
+    "Tampak Samping",
+    "Tampak Atas Bodi",
+    "Tampak Tutup Atas",
+    "Tampak Bawah"
+  ];
+
+  const grid = document.getElementById('grid');
+
+  views.forEach((title, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="img-box">
+        <img id="img-${idx}" src="" alt="Pilih Gambar">
+      </div>
+      <input type="text" class="title-input" value="${title}">
+      <input type="file" accept="image/*" onchange="loadImg(event, ${idx})">
+    `;
+    grid.appendChild(card);
+  });
+
+  function loadImg(event, idx) {
+    const file = event.target.files[0];
+    if (file) {
+      document.getElementById(`img-${idx}`).src = URL.createObjectURL(file);
+    }
+  }
+
+  function toggleCrop() {
+    const sheet = document.getElementById('sheet');
+    if (document.getElementById('cropToggle').checked) {
+      sheet.classList.add('auto-crop');
+    } else {
+      sheet.classList.remove('auto-crop');
+    }
+  }
+
+  function downloadImage() {
+    // Sembunyikan input file sementara saat dirender ke PNG
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(el => el.style.display = 'none');
+
+    html2canvas(document.getElementById('sheet'), { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'Desain_Casing_ZK-MT21_Gabungan.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      // Munculkan kembali tombol pilih file
+      fileInputs.forEach(el => el.style.display = 'block');
+    });
+  }
+</script>
+</body>
+</html>
